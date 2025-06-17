@@ -1,0 +1,3 @@
+config LOGANYSL
+    tristate "Loganysl memory access module"
+    default m
