@@ -7,19 +7,17 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
     - name: Checkout kernel source
       uses: actions/checkout@v4
 
-    - name: Install dependencies, set up clang, and build module
+    - name: Set up Clang toolchain and build module
       env:
         ARCH: arm64
         PATH: ${{ github.workspace }}/clang/bin:$PATH
       run: |
-        sudo apt update
-        sudo apt install -y build-essential make libncurses-dev bc bison flex libssl-dev ccache
         git clone https://github.com/kdrag0n/proton-clang --depth=1 clang
         make O=out ARCH=arm64 CC=clang d8g_defconfig
         make O=out ARCH=arm64 CC=clang modules
