@@ -10,23 +10,20 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-      - name: Checkout kernel source
-        uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
-      - name: Install git
-        run: sudo apt update && sudo apt install -y git
+    - name: Setup Clang from kdrag0n/proton-clang action
+      uses: kdrag0n/proton-clang@v1
 
-      - name: Set up Clang and build module
-        env:
-          ARCH: arm64
-          PATH: ${{ github.workspace }}/clang/bin:$PATH
-        run: |
-          git clone https://github.com/kdrag0n/proton-clang --depth=1 clang
-          make O=out ARCH=arm64 CC=clang d8g_defconfig
-          make O=out ARCH=arm64 CC=clang modules
+    - name: Build kernel module
+      env:
+        ARCH: arm64
+        PATH: ${{ env.PROTON_CLANG }}/bin:$PATH
+      run: |
+        make O=out ARCH=arm64 CC=clang d8g_defconfig
+        make O=out ARCH=arm64 CC=clang modules
 
-      - name: Upload built loganysl.ko
-        uses: actions/upload-artifact@v4
-        with:
-          name: loganysl-module
-          path: out/drivers/loganysl/loganysl.ko
+    - uses: actions/upload-artifact@v4
+      with:
+        name: loganysl-module
+        path: out/drivers/loganysl/loganysl.ko
