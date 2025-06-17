@@ -25,7 +25,7 @@ jobs:
       - name: Build kernel module
         env:
           ARCH: arm64
-          PATH: ${{ github.workspace }}/clang/bin:$PATH
+          PATH: ${{ github.workspace }}/clang/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH
         run: |
           mkdir -p out
           make O=out ARCH=arm64 CC=clang d8g_defconfig
