@@ -1,4 +1,4 @@
-name: Kernel Build
+name: Kernel Module Build (Loganysl)
 
 on:
   push:
@@ -10,32 +10,35 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout kernel
+    - name: Checkout kernel source
       uses: actions/checkout@v4
 
-    - name: Set up dependencies
+    - name: Set up build dependencies
       run: |
         sudo apt update
         sudo apt install -y build-essential libncurses-dev bc bison flex libssl-dev ccache
 
-    - name: Set up toolchain
+    - name: Set up Clang toolchain
       run: |
         git clone https://github.com/kdrag0n/proton-clang --depth=1 clang
 
-    - name: Configure & build module
+    - name: Configure kernel with d8g_defconfig
       env:
         ARCH: arm64
-        SUBARCH: arm64
-        CROSS_COMPILE: ${{ github.workspace }}/clang/bin/aarch64-linux-gnu-
-        CLANG_TRIPLE: aarch64-linux-gnu-
         PATH: ${{ github.workspace }}/clang/bin:$PATH
       run: |
-        export DEFCONFIG=<your_defconfig_name>  # Replace with actual defconfig
-        make O=out ARCH=arm64 CC=clang $DEFCONFIG
+        make O=out ARCH=arm64 CC=clang d8g_defconfig
+
+    - name: Build loganysl.ko module
+      env:
+        ARCH: arm64
+        CROSS_COMPILE: ${{ github.workspace }}/clang/bin/aarch64-linux-gnu-
+        PATH: ${{ github.workspace }}/clang/bin:$PATH
+      run: |
         make O=out ARCH=arm64 CC=clang modules
 
-    - name: Upload .ko
+    - name: Upload built loganysl.ko
       uses: actions/upload-artifact@v4
       with:
-        name: loganysl-ko
+        name: loganysl-module
         path: out/drivers/loganysl/loganysl.ko
