@@ -13,28 +13,15 @@ jobs:
     - name: Checkout kernel source
       uses: actions/checkout@v4
 
-    - name: Set up build dependencies
+    - name: Install dependencies, set up clang, and build module
+      env:
+        ARCH: arm64
+        PATH: ${{ github.workspace }}/clang/bin:$PATH
       run: |
         sudo apt update
         sudo apt install -y build-essential make libncurses-dev bc bison flex libssl-dev ccache
-
-    - name: Set up Clang toolchain
-      run: |
         git clone https://github.com/kdrag0n/proton-clang --depth=1 clang
-
-    - name: Configure kernel with d8g_defconfig
-      env:
-        ARCH: arm64
-        PATH: ${{ github.workspace }}/clang/bin:$PATH
-      run: |
         make O=out ARCH=arm64 CC=clang d8g_defconfig
-
-    - name: Build loganysl.ko module
-      env:
-        ARCH: arm64
-        CROSS_COMPILE: ${{ github.workspace }}/clang/bin/aarch64-linux-gnu-
-        PATH: ${{ github.workspace }}/clang/bin:$PATH
-      run: |
         make O=out ARCH=arm64 CC=clang modules
 
     - name: Upload built loganysl.ko
