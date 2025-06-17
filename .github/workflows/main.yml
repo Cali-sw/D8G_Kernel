@@ -16,7 +16,7 @@ jobs:
     - name: Set up build dependencies
       run: |
         sudo apt update
-        sudo apt install -y build-essential libncurses-dev bc bison flex libssl-dev ccache
+        sudo apt install -y build-essential make libncurses-dev bc bison flex libssl-dev ccache
 
     - name: Set up Clang toolchain
       run: |
