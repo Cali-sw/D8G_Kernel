@@ -10,22 +10,31 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout kernel source
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y build-essential bc bison flex libssl-dev libelf-dev
 
       - name: Setup Clang
         uses: llvm/llvm-project@main
         with:
-          llvm-version: '15.0.0'  # You can change to a stable clang version
+          llvm-version: '15.0.0'
 
       - name: Build kernel module
         env:
           ARCH: arm64
+          CROSS_COMPILE: aarch64-linux-gnu-
           PATH: /usr/bin:$PATH
         run: |
+          mkdir -p out
           make O=out ARCH=arm64 CC=clang d8g_defconfig
-          make O=out ARCH=arm64 CC=clang modules
+          make O=out ARCH=arm64 CC=clang M=drivers/loganysl modules
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload compiled module
+        uses: actions/upload-artifact@v4
         with:
           name: loganysl-module
           path: out/drivers/loganysl/loganysl.ko
