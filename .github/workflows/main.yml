@@ -1,0 +1,40 @@
+name: Kernel Build
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout kernel
+      uses: actions/checkout@v4
+
+    - name: Set up dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y build-essential libncurses-dev bc bison flex libssl-dev ccache
+
+    - name: Set up toolchain
+      run: |
+        git clone https://github.com/kdrag0n/proton-clang --depth=1 clang
+
+    - name: Configure & build module
+      env:
+        ARCH: arm64
+        SUBARCH: arm64
+        CROSS_COMPILE: ${{ github.workspace }}/clang/bin/aarch64-linux-gnu-
+        CLANG_TRIPLE: aarch64-linux-gnu-
+        PATH: ${{ github.workspace }}/clang/bin:$PATH
+      run: |
+        make O=out ARCH=arm64 CC=clang ${DEFCONFIG}
+        make O=out ARCH=arm64 CC=clang modules
+
+    - name: Upload .ko
+      uses: actions/upload-artifact@v3
+      with:
+        name: loganysl-ko
+        path: out/drivers/loganysl/loganysl.ko
