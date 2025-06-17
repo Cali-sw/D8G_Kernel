@@ -18,16 +18,14 @@ jobs:
           sudo apt update
           sudo apt install -y build-essential bc bison flex libssl-dev libelf-dev
 
-      - name: Setup Clang
-        uses: llvm/llvm-project@main
-        with:
-          llvm-version: '15.0.0'
+      - name: Clone Proton Clang
+        run: |
+          git clone --depth=1 https://github.com/kdrag0n/proton-clang clang
 
       - name: Build kernel module
         env:
           ARCH: arm64
-          CROSS_COMPILE: aarch64-linux-gnu-
-          PATH: /usr/bin:$PATH
+          PATH: ${{ github.workspace }}/clang/bin:$PATH
         run: |
           mkdir -p out
           make O=out ARCH=arm64 CC=clang d8g_defconfig
