@@ -10,20 +10,22 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Setup Clang from kdrag0n/proton-clang action
-      uses: kdrag0n/proton-clang@v1
+      - name: Setup Clang
+        uses: llvm/llvm-project@main
+        with:
+          llvm-version: '15.0.0'  # You can change to a stable clang version
 
-    - name: Build kernel module
-      env:
-        ARCH: arm64
-        PATH: ${{ env.PROTON_CLANG }}/bin:$PATH
-      run: |
-        make O=out ARCH=arm64 CC=clang d8g_defconfig
-        make O=out ARCH=arm64 CC=clang modules
+      - name: Build kernel module
+        env:
+          ARCH: arm64
+          PATH: /usr/bin:$PATH
+        run: |
+          make O=out ARCH=arm64 CC=clang d8g_defconfig
+          make O=out ARCH=arm64 CC=clang modules
 
-    - uses: actions/upload-artifact@v4
-      with:
-        name: loganysl-module
-        path: out/drivers/loganysl/loganysl.ko
+      - uses: actions/upload-artifact@v4
+        with:
+          name: loganysl-module
+          path: out/drivers/loganysl/loganysl.ko
