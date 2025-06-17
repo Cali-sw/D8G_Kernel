@@ -30,11 +30,12 @@ jobs:
         CLANG_TRIPLE: aarch64-linux-gnu-
         PATH: ${{ github.workspace }}/clang/bin:$PATH
       run: |
-        make O=out ARCH=arm64 CC=clang ${DEFCONFIG}
+        export DEFCONFIG=<your_defconfig_name>  # Replace with actual defconfig
+        make O=out ARCH=arm64 CC=clang $DEFCONFIG
         make O=out ARCH=arm64 CC=clang modules
 
     - name: Upload .ko
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: loganysl-ko
         path: out/drivers/loganysl/loganysl.ko
