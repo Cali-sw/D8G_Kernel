@@ -1,13 +1,21 @@
-name: Kernel Module Build (Loganysl)
+name: Kernel Build
 
 on:
   push:
+    branches: [ main ]
+  pull_request:
     branches: [ main ]
   workflow_dispatch:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
+
+    env:
+      ARCH: arm64
+      SUBARCH: arm64
+      CLANG_VERSION: 15
+      CROSS_COMPILE: aarch64-linux-gnu-
 
     steps:
       - name: Checkout kernel source
@@ -15,24 +23,23 @@ jobs:
 
       - name: Install dependencies
         run: |
-          sudo apt update
-          sudo apt install -y build-essential bc bison flex libssl-dev libelf-dev
+          sudo apt-get update
+          sudo apt-get install -y bc build-essential gcc-aarch64-linux-gnu libssl-dev flex bison libncurses-dev \
+                                  python3 rsync git wget curl clang-${CLANG_VERSION} lld-${CLANG_VERSION}
+          sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-${CLANG_VERSION} 100
+          sudo update-alternatives --install /usr/bin/ld.lld ld.lld /usr/bin/ld.lld-${CLANG_VERSION} 100
 
-      - name: Clone Proton Clang
-        run: |
-          git clone --depth=1 https://github.com/kdrag0n/proton-clang clang
+      - name: Set up kernel output directory
+        run: mkdir -p out
 
-      - name: Build kernel module
-        env:
-          ARCH: arm64
-          PATH: ${{ github.workspace }}/clang/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH
-        run: |
-          mkdir -p out
-          make O=out ARCH=arm64 CC=clang d8g_defconfig
-          make O=out ARCH=arm64 CC=clang M=drivers/loganysl modules
+      - name: Configure kernel
+        run: make O=out ARCH=arm64 CC=clang-${CLANG_VERSION} pipa_defconfig
 
-      - name: Upload compiled module
+      - name: Build kernel and modules
+        run: make -j$(nproc) O=out ARCH=arm64 CC=clang-${CLANG_VERSION} CROSS_COMPILE=${CROSS_COMPILE} modules
+
+      - name: Archive build output
         uses: actions/upload-artifact@v4
         with:
-          name: loganysl-module
-          path: out/drivers/loganysl/loganysl.ko
+          name: kernel-build-output
+          path: out
